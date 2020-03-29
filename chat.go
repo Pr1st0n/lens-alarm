@@ -6,32 +6,32 @@ import (
 )
 
 // Validate instead of read. Check fields and save, or ask for missing data
-type writeScope struct {
+type WriteScope struct {
 	key string
 	val string
 	ack chan bool
 }
 
-type readScope struct {
+type ReadScope struct {
 	res chan User
 }
 
-type chatScope struct {
+type ChatScope struct {
 	id    int64
-	read  chan readScope
-	write chan writeScope
+	read  chan ReadScope
+	write chan WriteScope
 }
 
-var chats = make(map[int64]chatScope)
+var chats = make(map[int64]ChatScope)
 
-func getChat(chatId int64) chatScope {
+func GetChat(chatId int64) ChatScope {
 	chat, ok := chats[chatId]
 
 	if !ok {
-		chat = chatScope{
+		chat = ChatScope{
 			id:    chatId,
-			read:  make(chan readScope),
-			write: make(chan writeScope),
+			read:  make(chan ReadScope),
+			write: make(chan WriteScope),
 		}
 		go chat.exec()
 		chats[chatId] = chat
@@ -40,7 +40,7 @@ func getChat(chatId int64) chatScope {
 	return chat
 }
 
-func (chat chatScope) exec() {
+func (chat ChatScope) exec() {
 	user := User{ChatId: chat.id}
 
 	for {
