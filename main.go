@@ -24,7 +24,7 @@ type Packs struct {
 }
 
 func (user User) String() string {
-	return fmt.Sprintf("Duration: %s, Days in use: %s, Stock: %s, Next change: %s, Last change: %s",
+	return fmt.Sprintf("Duration: %d, In use since: %s, Stock: %d, Next change: %s, Last change: %s",
 		user.Packs.Duration,
 		user.Packs.LastOpenDate,
 		user.Packs.Stock,

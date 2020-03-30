@@ -50,8 +50,11 @@ func (chat ChatScope) exec() {
 			case "duration":
 				user.Packs.Duration, _ = strconv.Atoi(data.val)
 				data.ack <- true
-			case "lastOpenDate":
-				user.Packs.LastOpenDate = time.Now().String()
+			case "last-open":
+				now := time.Now()
+				days, _ := strconv.Atoi(data.val)
+				lastOpen := now.AddDate(0, 0, -days)
+				user.Packs.LastOpenDate = lastOpen.Format(DATE_LAYOUT)
 				data.ack <- true
 			case "stock":
 				user.Packs.Stock, _ = strconv.Atoi(data.val)
