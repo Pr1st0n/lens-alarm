@@ -1,4 +1,4 @@
-package main
+package bot
 
 import (
 	"encoding/json"
@@ -23,7 +23,7 @@ const (
 )
 
 type ChatBot struct {
-	bot *tgbotapi.BotAPI
+	Bot *tgbotapi.BotAPI
 }
 
 var menuKeyboard = tgbotapi.NewInlineKeyboardMarkup(
@@ -79,7 +79,7 @@ func (chatBot ChatBot) handleMessageUpdate(update tgbotapi.Update) {
 	if MENU_NEW == update.Message.Text {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "How can I help you?")
 		msg.ReplyMarkup = menuKeyboard
-		chatBot.bot.Send(msg)
+		chatBot.Bot.Send(msg)
 	}
 }
 
@@ -93,7 +93,7 @@ func (chatBot ChatBot) handleQueryCallbackUpdate(update tgbotapi.Update) {
 		intVal, _ := strconv.Atoi(value)
 		markup := getNumericKeyboard(field, intVal)
 		msg.ReplyMarkup = &markup
-		chatBot.bot.Send(msg)
+		chatBot.Bot.Send(msg)
 	case MENU_NEXT, MENU_NEW:
 		if len(field) > 0 {
 			updateUser(update.CallbackQuery.Message.Chat.ID, field, value)
@@ -102,9 +102,9 @@ func (chatBot ChatBot) handleQueryCallbackUpdate(update tgbotapi.Update) {
 		nextMenu := getNextMenu(field)
 
 		if nextMenu == MENU_SAVE {
-			chat := GetChat(update.CallbackQuery.Message.Chat.ID)
+			chat := getChatScope(update.CallbackQuery.Message.Chat.ID)
 			res := make(chan User)
-			chat.read <- ReadScope{res: res}
+			chat.read <- readScope{res: res}
 			user := <-res
 			lastOpen, _ := time.Parse(DATE_LAYOUT, user.Packs.LastOpenDate)
 			user.Packs.ChangeDate = lastOpen.AddDate(0, 0, user.Packs.Duration).Format(DATE_LAYOUT)
@@ -115,20 +115,20 @@ func (chatBot ChatBot) handleQueryCallbackUpdate(update tgbotapi.Update) {
 			}
 			saveUser(user)
 			msg := tgbotapi.NewEditMessageText(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID, user.String())
-			chatBot.bot.Send(msg)
+			chatBot.Bot.Send(msg)
 		} else {
 			msg := tgbotapi.NewEditMessageText(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Message.MessageID, "What is the "+nextMenu+"?")
 			markup := getNumericKeyboard(nextMenu, 1)
 			msg.ReplyMarkup = &markup
-			chatBot.bot.Send(msg)
+			chatBot.Bot.Send(msg)
 		}
 	}
 }
 
 func updateUser(chatId int64, key, val string) {
-	chat := GetChat(chatId)
+	chat := getChatScope(chatId)
 	ack := make(chan bool)
-	chat.write <- WriteScope{key: key, val: val, ack: ack}
+	chat.write <- writeScope{key: key, val: val, ack: ack}
 	<-ack
 }
 
